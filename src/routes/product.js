@@ -8,7 +8,15 @@ const {
   updateProduct,
   deleteProduct,
   getProductsByCategory,
+  getCompleteStockProducts,
+  getAllProductsByCategory,
 } = require("../controllers/product");
+
+// get whole stock
+router.get("/all", getCompleteStockProducts);
+
+// get category wise whole stock
+router.get("/all/:category_id", getAllProductsByCategory);
 
 // create product
 router.post("/", authMiddleware, addProduct);

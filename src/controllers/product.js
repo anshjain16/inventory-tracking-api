@@ -129,12 +129,21 @@ const updateProduct = async (req, res) => {
     }
   );
 
-  const { product_name, description, price, quantity, threshold } = req.body;
+  const { product_name, description, price, quantity, threshold, category_id } =
+    req.body;
 
   dbclient.query(
-    "UPDATE products SET product_name = $1, description = $2, price = $3, quantity = $4, threshhold = $5, updated_at = CURRENT_TIMESTAMP WHERE product_id = $6",
+    "UPDATE products SET product_name = $1, description = $2, price = $3, quantity = $4, threshhold = $5, updated_at = CURRENT_TIMESTAMP, category_id = $7 WHERE product_id = $6",
 
-    [product_name, description, price, quantity, threshold, product_id],
+    [
+      product_name,
+      description,
+      price,
+      quantity,
+      threshold,
+      product_id,
+      category_id,
+    ],
 
     (err, response) => {
       if (err) {
@@ -213,6 +222,31 @@ const getProductsByCategory = async (req, res) => {
   );
 };
 
+const getCompleteStockProducts = async (req, res) => {
+  dbclient.query("SELECT * FROM products", (err, response) => {
+    if (err) {
+      res.status(500).json("error occured");
+    } else {
+      res.status(200).json(response.rows);
+    }
+  });
+};
+
+const getAllProductsByCategory = async (req, res) => {
+  const category_id = req.params.category_id;
+  dbclient.query(
+    "SELECT * FROM products WHERE category_id = $1",
+    [category_id],
+    (err, response) => {
+      if (err) {
+        res.status(500).json("Error occured");
+      } else {
+        res.status(200).json(response.rows);
+      }
+    }
+  );
+};
+
 module.exports = {
   addProduct,
   getAllProducts,
@@ -220,4 +254,6 @@ module.exports = {
   updateProduct,
   deleteProduct,
   getProductsByCategory,
+  getCompleteStockProducts,
+  getAllProductsByCategory,
 };

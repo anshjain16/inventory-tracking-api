@@ -6,7 +6,7 @@ const authMiddleware = async (req, res, next) => {
   // console.log(cookie);
   //   if (!cookie) return next(customAPIerror(404, "sign in first"));
   const token = cookie.split(" ")[1];
-
+  // console.log(token);
   jwt.verify(token, "thisismysecretkey", (err, user) => {
     req.user = user;
     // console.log(user);

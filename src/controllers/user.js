@@ -23,7 +23,7 @@ const getUser = async (req, res) => {
     (err, response) => {
       console.log(response);
       rows = response.rows;
-      res.status(200).send(rows);
+      res.status(200).send(rows[0]);
     }
   );
   //   console.log(rows);
@@ -37,13 +37,25 @@ const loginUser = async (req, res) => {
     "SELECT * FROM users WHERE user_name = $1",
     [user_name],
     (err, response) => {
-      if (response.rows[0].password == password) {
-        const token = jwt.sign({ user_name: user_name }, "thisismysecretkey");
+      if (response.rowCount === 0) {
+        res.status(500).json("Enter valid username");
+      } else if (response.rows[0].password == password) {
+        const token = jwt.sign(
+          {
+            user_name: user_name,
+            role: response.rows[0].role,
+            user_id: response.rows[0].user_id,
+          },
+          "thisismysecretkey"
+        );
         res.status(200).json({
           access_token: token,
+          role: response.rows[0].role,
         });
+      } else if (err) {
+        res.status(505).json(err);
       } else {
-        res.status(400).send("not authorized");
+        res.status(400).json("not authorized");
       }
     }
   );
