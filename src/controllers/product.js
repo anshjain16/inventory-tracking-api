@@ -39,6 +39,7 @@ const addProduct = async (req, res) => {
 };
 
 const getAllProducts = async (req, res) => {
+  // console.log(req.user);
   const user_name = req.user.user_name;
 
   dbclient.query(
@@ -99,6 +100,21 @@ const getProduct = async (req, res) => {
           }
         }
       );
+    }
+  );
+};
+
+const getProductName = async (req, res) => {
+  const product_id = req.params.product_id;
+  dbclient.query(
+    "SELECT product_name FROM products WHERE product_id = $1",
+    [product_id],
+    (err, response) => {
+      if (err) {
+        res.status(500).json("error");
+      } else {
+        res.status(200).json(response.rows[0].product_name);
+      }
     }
   );
 };
@@ -251,6 +267,7 @@ module.exports = {
   addProduct,
   getAllProducts,
   getProduct,
+  getProductName,
   updateProduct,
   deleteProduct,
   getProductsByCategory,

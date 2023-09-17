@@ -26,7 +26,7 @@ router.put("/order/ammount/:order_id", updateAmmount);
 // delete order
 router.delete("/order", deleteOrder);
 
-// get all orders to a manager
+// get all orders to/of a user
 router.get("/order/all", authMiddleware, getAllOrders);
 
 // get a order

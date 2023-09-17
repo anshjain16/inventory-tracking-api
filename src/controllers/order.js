@@ -2,29 +2,37 @@ const dbclient = require("../dbconfig/database");
 
 const createOrder = async (req, res) => {
   const customer_id = req.user.user_id;
-  console.log(req.user);
+  const { manager_name } = req.body;
   dbclient.query(
-    "INSERT INTO orders(customer_id, status_id) VALUES($1, 1)",
-    [customer_id],
+    "SELECT * FROM users WHERE user_name = $1",
+    [manager_name],
     (err, response) => {
-      if (err) {
-        console.log(err);
-        res.status(500).json("error");
-      } else {
-        res.status(200).json(response.rows);
-      }
+      const manager_id = response.rows[0].user_id;
+      dbclient.query(
+        "INSERT INTO orders(customer_id, status_id, manager_id) VALUES($1, 1, $2) RETURNING *",
+        [customer_id, manager_id],
+        (err, response) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json("error");
+          } else {
+            res.status(200).json(response.rows);
+          }
+        }
+      );
     }
   );
 };
 
 const updateAmmount = async (req, res) => {
-  const total_ammount = req.body;
+  const { total_ammount } = req.body;
   const order_id = req.params.order_id;
   dbclient.query(
-    "UDPATE orders SET total_ammount = $1 WHERE order_id = $2",
+    "UPDATE orders SET total_ammount = $1 WHERE order_id = $2",
     [total_ammount, order_id],
     (err, response) => {
       if (err) {
+        console.log(err);
         res.status(500).json("error");
       } else {
         res.status(200).json("udpated");
@@ -67,10 +75,24 @@ const getOrder = async (req, res) => {
   );
 };
 
-const getAllOrders = async (req, res) => {};
+const getAllOrders = async (req, res) => {
+  const user_id = req.user.user_id;
+  dbclient.query(
+    "SELECT * FROM orders WHERE customer_id = $1 ORDER BY order_id DESC",
+    [user_id],
+    (err, response) => {
+      if (err) {
+        res.status(500).json("error");
+      } else {
+        res.status(200).json(response.rows);
+      }
+    }
+  );
+};
 
 const createItem = async (req, res) => {
   const product_id = req.params.product_id;
+  console.log(req.body);
   const { quantity } = req.body;
   const order_id = req.params.order_id;
 
@@ -88,7 +110,7 @@ const createItem = async (req, res) => {
             res.status(500).json("error");
             console.log(err);
           } else {
-            res.status(200).json("created");
+            res.status(200).json(subtotal);
           }
         }
       );

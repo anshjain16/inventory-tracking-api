@@ -30,6 +30,44 @@ const getUser = async (req, res) => {
   //   res.status(200).send(rows);
 };
 
+const getUserById = async (req, res) => {
+  const user_id = req.params.user_id;
+  dbclient.query(
+    "SELECT * FROM users WHERE user_id = $1",
+    [user_id],
+    (err, response) => {
+      if (err) {
+        console.log(err);
+        res.status(500).json("error");
+      } else {
+        res.status(200).json(response.rows[0]);
+      }
+    }
+  );
+};
+
+const getUserMid = async (req, res) => {
+  const user_name = req.user.user_name;
+  await dbclient.query(
+    "SELECT * FROM users WHERE user_name = $1",
+    [user_name],
+    (err, response) => {
+      console.log(response);
+      res.status(200).json(response.rows[0]);
+    }
+  );
+};
+
+const getManagers = async (req, res) => {
+  dbclient.query(
+    "SELECT * FROM users WHERE role = $1",
+    ["manager"],
+    (err, response) => {
+      res.status(200).json(response.rows);
+    }
+  );
+};
+
 const loginUser = async (req, res) => {
   const { user_name, password } = req.body;
   console.log(req.body);
@@ -69,5 +107,8 @@ const updateUser = async (req, res) => {
 module.exports = {
   registerUser,
   getUser,
+  getUserById,
+  getUserMid,
   loginUser,
+  getManagers,
 };
