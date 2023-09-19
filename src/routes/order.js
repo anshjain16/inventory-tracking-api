@@ -1,5 +1,6 @@
 const express = require("express");
 const { authMiddleware } = require("../middleware/auth");
+const { checkdb, checkStatus } = require("../middleware/order-util");
 const {
   createOrder,
   updateAmmount,
@@ -12,6 +13,7 @@ const {
   deleteItem,
   getAllItems,
   getItem,
+  generateInvoice,
 } = require("../controllers/order");
 
 const router = express.Router();
@@ -30,10 +32,13 @@ router.delete("/order", deleteOrder);
 router.get("/order/all", authMiddleware, getAllOrders);
 
 // get a order
-router.get("/order/:order_id", getOrder);
+router.get("/order/:order_id", checkStatus, getOrder);
+
+// generate invoice
+router.get("/order/invoice/:order_id", generateInvoice);
 
 // create order item
-router.post("/item/:order_id/:product_id", createItem);
+router.post("/item/:order_id/:product_id", checkdb, createItem);
 
 // delete order item
 router.delete("/item/:item_id", deleteItem);

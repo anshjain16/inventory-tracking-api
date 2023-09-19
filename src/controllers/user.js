@@ -52,7 +52,7 @@ const getUserMid = async (req, res) => {
     "SELECT * FROM users WHERE user_name = $1",
     [user_name],
     (err, response) => {
-      console.log(response);
+      // console.log(response);
       res.status(200).json(response.rows[0]);
     }
   );

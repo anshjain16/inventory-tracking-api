@@ -1,4 +1,5 @@
 const dbclient = require("../dbconfig/database");
+const PDFDocument = require("pdfkit");
 
 const createOrder = async (req, res) => {
   const customer_id = req.user.user_id;
@@ -93,7 +94,7 @@ const getAllOrders = async (req, res) => {
 const createItem = async (req, res) => {
   const product_id = req.params.product_id;
   console.log(req.body);
-  const { quantity } = req.body;
+  const { quantity, flag } = req.body;
   const order_id = req.params.order_id;
 
   dbclient.query(
@@ -103,8 +104,8 @@ const createItem = async (req, res) => {
       const price_per_unit = Number(response.rows[0].price);
       const subtotal = price_per_unit * quantity;
       dbclient.query(
-        "INSERT INTO order_items(order_id, product_id, quantity, price_per_unit, subtotal) VALUES($1, $2, $3, $4, $5)",
-        [order_id, product_id, quantity, price_per_unit, subtotal],
+        "INSERT INTO order_items(order_id, product_id, quantity, price_per_unit, subtotal, ready_flag) VALUES($1, $2, $3, $4, $5, $6)",
+        [order_id, product_id, quantity, price_per_unit, subtotal, flag],
         (err, response) => {
           if (err) {
             res.status(500).json("error");
@@ -187,6 +188,88 @@ const getAllItems = async (req, res) => {
   );
 };
 
+const generateInvoice = async (req, res) => {
+  try {
+    // Fetch order details and products from the database based on orderId
+    const order_id = req.params.order_id;
+
+    const result = await dbclient.query(
+      "SELECT * FROM orders WHERE order_id = $1",
+      [order_id]
+    );
+    const order = result.rows[0];
+    // res.json(order);
+
+    const result2 = await dbclient.query(
+      "SELECT * FROM order_items WHERE order_id = $1",
+      [order_id]
+    );
+    let items = result2.rows;
+
+    const result3 = await dbclient.query(
+      "SELECT * FROM users WHERE user_id = $1",
+      [order.manager_id]
+    );
+    const manager_name = result3.rows[0].fullname;
+
+    let products = [];
+    const promises = items.map(async (item) => {
+      const result4 = await dbclient.query(
+        "SELECT * FROM products WHERE product_id = $1",
+        [item.product_id]
+      );
+      products.push({ ...item, product_name: result4.rows[0].product_name });
+      // console.log(result4);
+      return { ...item, product_name: result4.rows[0].product_name };
+    });
+
+    Promise.all(promises).then((products) => {
+      const doc = new PDFDocument();
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="invoice-${order_id}.pdf"`
+      );
+      res.setHeader("Content-Type", "application/pdf");
+      doc.pipe(res);
+
+      // Add content to the PDF (customize this based on your order structure)
+      doc.fontSize(18).text("Invoice", { align: "center" });
+      doc.moveDown();
+      doc.fontSize(14).text(`Order ID: ${order.order_id}`);
+      doc.moveDown();
+      doc.fontSize(12).text("Order Details:");
+      doc.moveDown();
+
+      doc.font("Helvetica-Bold");
+      doc.text("Product Name", 50, doc.y, { width: 200 });
+      doc.text("Price", 250, doc.y, { width: 100 });
+      doc.text("Quantity", 350, doc.y, { width: 80 });
+      doc.text("Total", 450, doc.y, { width: 100 });
+      doc.y += 20; // Move down after header
+
+      // Loop through products in the order and add them to the "table"
+      doc.font("Helvetica");
+      products.forEach((product) => {
+        const total = product.price_per_unit * product.quantity;
+        doc.text(product.product_name, 50, doc.y, { width: 200 });
+        doc.text(`$${product.price_per_unit}`, 250, doc.y, { width: 100 });
+        doc.text(product.quantity.toString(), 350, doc.y, { width: 80 });
+        doc.text(`$${total}`, 450, doc.y, { width: 100 });
+        doc.y += 20; // Move down after each row
+      });
+
+      doc.moveDown();
+      doc.fontSize(14).text(`Total Amount: $${order.total_ammount}`);
+      doc.end(); // End the document
+    });
+
+    // res.json({ order, manager_name, items , resu});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to generate invoice" });
+  }
+};
+
 module.exports = {
   createOrder,
   updateAmmount,
@@ -199,4 +282,5 @@ module.exports = {
   deleteItem,
   getItem,
   getAllItems,
+  generateInvoice,
 };
