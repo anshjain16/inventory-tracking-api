@@ -15,12 +15,29 @@ const checkdb = async (req, res, next) => {
           req.body.flag = "1";
           const remainingQuantity = availableQuantity - requestedQuantity;
           dbclient.query(
-            "UPDATE products SET quantity = $1 WHERE product_id = $2",
+            "UPDATE products SET quantity = $1 WHERE product_id = $2 RETURNING *",
             [remainingQuantity, product_id],
             (err, response) => {
               if (err) {
                 console.log(err);
               } else {
+                const threshold = response.rows[0].threshhold;
+                const manager_id = response.rows[0].manager_id;
+                // console.log(remainingQuantity, threshold);
+                const content = `The product ${response.rows[0].product_name} is in low stock`;
+                if (remainingQuantity < threshold) {
+                  console.log(threshold, manager_id, content);
+                  dbclient.query(
+                    "INSERT INTO notifications(user_id, content) VALUES($1, $2)",
+                    [manager_id, content],
+                    (err, response) => {
+                      if (err) {
+                        console.log(err);
+                      } else {
+                      }
+                    }
+                  );
+                }
               }
             }
           );
@@ -35,6 +52,12 @@ const checkdb = async (req, res, next) => {
 
 const checkStatus = async (req, res, next) => {
   const order_id = req.params.order_id;
+
+  const order = await dbclient.query(
+    "SELECT * FROM orders WHERE order_id = $1",
+    [order_id]
+  );
+
   dbclient.query(
     "SELECT * FROM order_items WHERE order_id = $1",
     [order_id],
@@ -47,15 +70,26 @@ const checkStatus = async (req, res, next) => {
         items.map((item) => {
           isReady = isReady && item.ready_flag;
         });
-        if (isReady == true) {
+        if (isReady == true && order.rows[0].status_id != 2) {
           dbclient.query(
-            "UPDATE orders SET status_id = 2 WHERE order_id = $1",
+            "UPDATE orders SET status_id = 2 WHERE order_id = $1 RETURNING *",
             [order_id],
             (err, response) => {
               if (err) {
                 res.status(500).json("error");
               } else {
-                // next();
+                const customer_id = response.rows[0].customer_id;
+                const content = `Order-${order_id} has been shipped`;
+                dbclient.query(
+                  "INSERT INTO notifications(user_id, content) VALUES($1, $2)",
+                  [customer_id, content],
+                  (err, response) => {
+                    if (err) {
+                      console.log(err);
+                    } else {
+                    }
+                  }
+                );
               }
             }
           );

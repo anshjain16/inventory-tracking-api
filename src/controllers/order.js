@@ -4,6 +4,8 @@ const PDFDocument = require("pdfkit");
 const createOrder = async (req, res) => {
   const customer_id = req.user.user_id;
   const { manager_name } = req.body;
+  // const content = ``
+  // dbclient.query("INSERT INTO notifications(user_id, content)", [customer_id, ])
   dbclient.query(
     "SELECT * FROM users WHERE user_name = $1",
     [manager_name],
