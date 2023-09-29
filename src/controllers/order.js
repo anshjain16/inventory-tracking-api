@@ -12,7 +12,7 @@ const createOrder = async (req, res) => {
     (err, response) => {
       const manager_id = response.rows[0].user_id;
       dbclient.query(
-        "INSERT INTO orders(customer_id, status_id, manager_id) VALUES($1, 1, $2) RETURNING *",
+        "INSERT INTO orders(customer_id, status_id, manager_id, delivery_man_id) VALUES($1, 1, $2, 1) RETURNING *",
         [customer_id, manager_id],
         (err, response) => {
           if (err) {
@@ -78,10 +78,25 @@ const getOrder = async (req, res) => {
   );
 };
 
-const getAllOrders = async (req, res) => {
+const getOrdersOfCustomer = async (req, res) => {
   const user_id = req.user.user_id;
   dbclient.query(
     "SELECT * FROM orders WHERE customer_id = $1 ORDER BY order_id DESC",
+    [user_id],
+    (err, response) => {
+      if (err) {
+        res.status(500).json("error");
+      } else {
+        res.status(200).json(response.rows);
+      }
+    }
+  );
+};
+
+const getOrdersToManager = async (req, res) => {
+  const user_id = req.user.user_id;
+  dbclient.query(
+    "SELECT * FROM orders WHERE manager_id = $1 ORDER BY order_id DESC",
     [user_id],
     (err, response) => {
       if (err) {
@@ -278,7 +293,8 @@ module.exports = {
   updateStatus,
   deleteOrder,
   getOrder,
-  getAllOrders,
+  getOrdersOfCustomer,
+  getOrdersToManager,
   createItem,
   updateItem,
   deleteItem,

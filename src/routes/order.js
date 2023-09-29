@@ -6,7 +6,8 @@ const {
   updateAmmount,
   updateStatus,
   deleteOrder,
-  getAllOrders,
+  getOrdersOfCustomer,
+  getOrdersToManager,
   getOrder,
   createItem,
   updateItem,
@@ -23,13 +24,14 @@ router.post("/order", authMiddleware, createOrder);
 
 // update order
 router.put("/order/status/:order_id", updateStatus);
-router.put("/order/ammount/:order_id", updateAmmount);
+router.put("/order/ammount/:order_id", checkStatus, updateAmmount);
 
 // delete order
 router.delete("/order", deleteOrder);
 
 // get all orders to/of a user
-router.get("/order/all", authMiddleware, getAllOrders);
+router.get("/order/customer", authMiddleware, getOrdersOfCustomer);
+router.get("/order/manager", authMiddleware, getOrdersToManager);
 
 // get a order
 router.get("/order/:order_id", checkStatus, getOrder);

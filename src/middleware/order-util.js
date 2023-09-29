@@ -70,7 +70,7 @@ const checkStatus = async (req, res, next) => {
         items.map((item) => {
           isReady = isReady && item.ready_flag;
         });
-        if (isReady == true && order.rows[0].status_id != 2) {
+        if (isReady == true && order.rows[0].status_id == 1) {
           dbclient.query(
             "UPDATE orders SET status_id = 2 WHERE order_id = $1 RETURNING *",
             [order_id],
@@ -79,7 +79,7 @@ const checkStatus = async (req, res, next) => {
                 res.status(500).json("error");
               } else {
                 const customer_id = response.rows[0].customer_id;
-                const content = `Order-${order_id} has been shipped`;
+                const content = `Order-${order_id} has been placed`;
                 dbclient.query(
                   "INSERT INTO notifications(user_id, content) VALUES($1, $2)",
                   [customer_id, content],
@@ -102,6 +102,7 @@ const checkStatus = async (req, res, next) => {
 
 const updateItemFlag = async (req, res, next) => {
   const product_id = req.params.product_id;
+  let order_list = [];
   let availableQuantity = req.body.quantity;
   dbclient.query(
     "SELECT * FROM order_items WHERE product_id = $1 AND ready_flag = false ORDER BY order_id ASC",
@@ -114,6 +115,7 @@ const updateItemFlag = async (req, res, next) => {
       items.map((item) => {
         if (availableQuantity >= item.quantity) {
           availableQuantity = availableQuantity - item.quantity;
+          order_list.push(item.order_id);
           dbclient.query(
             "UPDATE order_items SET ready_flag = true WHERE item_id = $1",
             [item.item_id],
@@ -126,10 +128,71 @@ const updateItemFlag = async (req, res, next) => {
           );
         }
       });
+      console.log(availableQuantity);
+      console.log(order_list);
       req.body.quantity = availableQuantity;
+      req.body.order_list = order_list;
       next();
     }
   );
 };
 
-module.exports = { checkdb, checkStatus, updateItemFlag };
+const checkStatusWhileUpdateProduct = async (req, res, next) => {
+  const order_list = req.body.order_list;
+  console.log(order_list);
+
+  order_list.map(async (order_id) => {
+    const order = await dbclient.query(
+      "SELECT * FROM orders WHERE order_id = $1",
+      [order_id]
+    );
+
+    dbclient.query(
+      "SELECT * FROM order_items WHERE order_id = $1",
+      [order_id],
+      (err, response) => {
+        if (err) {
+          res.status(500).json("error");
+        } else {
+          const items = response.rows;
+          let isReady = true;
+          items.map((item) => {
+            isReady = isReady && item.ready_flag;
+          });
+          if (isReady == true && order.rows[0].status_id == 1) {
+            dbclient.query(
+              "UPDATE orders SET status_id = 2 WHERE order_id = $1 RETURNING *",
+              [order_id],
+              (err, response) => {
+                if (err) {
+                  res.status(500).json("error");
+                } else {
+                  const customer_id = response.rows[0].customer_id;
+                  const content = `Order-${order_id} has been placed`;
+                  dbclient.query(
+                    "INSERT INTO notifications(user_id, content) VALUES($1, $2)",
+                    [customer_id, content],
+                    (err, response) => {
+                      if (err) {
+                        console.log(err);
+                      } else {
+                      }
+                    }
+                  );
+                }
+              }
+            );
+          }
+        }
+      }
+    );
+  });
+  next();
+};
+
+module.exports = {
+  checkdb,
+  checkStatus,
+  updateItemFlag,
+  checkStatusWhileUpdateProduct,
+};

@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const { authMiddleware } = require("../middleware/auth");
-const { updateItemFlag } = require("../middleware/order-util");
+const {
+  updateItemFlag,
+  checkStatusWhileUpdateProduct,
+} = require("../middleware/order-util");
 const { addUsername } = require("../middleware/user-adder");
 const {
   addProduct,
@@ -35,7 +38,13 @@ router.get("/name/:product_id", getProductName);
 router.get("/", authMiddleware, getAllProducts);
 
 // update products
-router.put("/:product_id", authMiddleware, updateItemFlag, updateProduct);
+router.put(
+  "/:product_id",
+  authMiddleware,
+  updateItemFlag,
+  checkStatusWhileUpdateProduct,
+  updateProduct
+);
 
 // delete product
 router.delete("/:product_id", authMiddleware, deleteProduct);
