@@ -19,6 +19,7 @@ const productRouter = require("./src/routes/product");
 const categoryRouter = require("./src/routes/category");
 const orderRouter = require("./src/routes/order");
 const notifRouter = require("./src/routes/notif");
+const deliveryRouter = require("./src/routes/delivery");
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/api/v1/product", productRouter);
 app.use("/api/v1/category", categoryRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/notif", notifRouter);
+app.use("/api/v1/delivery", deliveryRouter);
 
 // const port = PROCESS.ENV.PORT || 8080;
 

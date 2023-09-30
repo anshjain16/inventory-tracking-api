@@ -5,9 +5,12 @@ const {
   createOrder,
   updateAmmount,
   updateStatus,
+  updateDeliveryMan,
   deleteOrder,
   getOrdersOfCustomer,
   getOrdersToManager,
+  getOrdersOfCustomerStatusWise,
+  getOrdersToManagerStatusWise,
   getOrder,
   createItem,
   updateItem,
@@ -25,6 +28,7 @@ router.post("/order", authMiddleware, createOrder);
 // update order
 router.put("/order/status/:order_id", updateStatus);
 router.put("/order/ammount/:order_id", checkStatus, updateAmmount);
+router.put("/order/delivery/:order_id", updateDeliveryMan);
 
 // delete order
 router.delete("/order", deleteOrder);
@@ -32,6 +36,18 @@ router.delete("/order", deleteOrder);
 // get all orders to/of a user
 router.get("/order/customer", authMiddleware, getOrdersOfCustomer);
 router.get("/order/manager", authMiddleware, getOrdersToManager);
+
+// get orders to/of user status wise
+router.get(
+  "/order/customer/:status_id",
+  authMiddleware,
+  getOrdersOfCustomerStatusWise
+);
+router.get(
+  "/order/manager/:status_id",
+  authMiddleware,
+  getOrdersToManagerStatusWise
+);
 
 // get a order
 router.get("/order/:order_id", checkStatus, getOrder);

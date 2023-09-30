@@ -45,13 +45,31 @@ const updateAmmount = async (req, res) => {
 };
 
 const updateStatus = async (req, res) => {
-  const status_id = req.body;
+  const { status_id } = req.body;
   const order_id = req.params.order_id;
   dbclient.query(
-    "UDPATE orders SET status_id = $1 WHERE order_id = $2",
+    "UPDATE orders SET status_id = $1 WHERE order_id = $2",
     [status_id, order_id],
     (err, response) => {
       if (err) {
+        console.log(err);
+        res.status(500).json("error");
+      } else {
+        res.status(200).json("udpated");
+      }
+    }
+  );
+};
+
+const updateDeliveryMan = async (req, res) => {
+  const { dm_id } = req.body;
+  const order_id = req.params.order_id;
+  dbclient.query(
+    "UPDATE orders SET delivery_man_id = $1 WHERE order_id = $2",
+    [dm_id, order_id],
+    (err, response) => {
+      if (err) {
+        console.log(err);
         res.status(500).json("error");
       } else {
         res.status(200).json("udpated");
@@ -98,6 +116,38 @@ const getOrdersToManager = async (req, res) => {
   dbclient.query(
     "SELECT * FROM orders WHERE manager_id = $1 ORDER BY order_id DESC",
     [user_id],
+    (err, response) => {
+      if (err) {
+        res.status(500).json("error");
+      } else {
+        res.status(200).json(response.rows);
+      }
+    }
+  );
+};
+
+const getOrdersOfCustomerStatusWise = async (req, res) => {
+  const user_id = req.user.user_id;
+  const status_id = req.params.status_id;
+  dbclient.query(
+    "SELECT * FROM orders WHERE customer_id = $1 AND status_id = $1 ORDER BY order_id DESC",
+    [user_id, status_id],
+    (err, response) => {
+      if (err) {
+        res.status(500).json("error");
+      } else {
+        res.status(200).json(response.rows);
+      }
+    }
+  );
+};
+
+const getOrdersToManagerStatusWise = async (req, res) => {
+  const user_id = req.user.user_id;
+  const status_id = req.params.status_id;
+  dbclient.query(
+    "SELECT * FROM orders WHERE manager_id = $1 AND status_id = $2 ORDER BY order_id DESC",
+    [user_id, status_id],
     (err, response) => {
       if (err) {
         res.status(500).json("error");
@@ -291,10 +341,13 @@ module.exports = {
   createOrder,
   updateAmmount,
   updateStatus,
+  updateDeliveryMan,
   deleteOrder,
   getOrder,
   getOrdersOfCustomer,
   getOrdersToManager,
+  getOrdersOfCustomerStatusWise,
+  getOrdersToManagerStatusWise,
   createItem,
   updateItem,
   deleteItem,
