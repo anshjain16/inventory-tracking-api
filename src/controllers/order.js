@@ -126,6 +126,21 @@ const getOrdersToManager = async (req, res) => {
   );
 };
 
+const getOrdersToDeliveryMan = async (req, res) => {
+  const dm_id = req.user.dm_id;
+  dbclient.query(
+    "SELECT * FROM orders WHERE delivery_man_id = $1 ORDER BY order_id DESC",
+    [dm_id],
+    (err, response) => {
+      if (err) {
+        res.status(500).json("error");
+      } else {
+        res.status(200).json(response.rows);
+      }
+    }
+  );
+};
+
 const getOrdersOfCustomerStatusWise = async (req, res) => {
   const user_id = req.user.user_id;
   const status_id = req.params.status_id;
@@ -148,6 +163,22 @@ const getOrdersToManagerStatusWise = async (req, res) => {
   dbclient.query(
     "SELECT * FROM orders WHERE manager_id = $1 AND status_id = $2 ORDER BY order_id DESC",
     [user_id, status_id],
+    (err, response) => {
+      if (err) {
+        res.status(500).json("error");
+      } else {
+        res.status(200).json(response.rows);
+      }
+    }
+  );
+};
+
+const getOrdersToDeliveryManStatusWise = async (req, res) => {
+  const dm_id = req.user.dm_id;
+  const status_id = req.params.status_id;
+  dbclient.query(
+    "SELECT * FROM orders WHERE delivery_man_id = $1 AND status_id = $2 ORDER BY order_id DESC",
+    [dm_id, status_id],
     (err, response) => {
       if (err) {
         res.status(500).json("error");
@@ -346,8 +377,10 @@ module.exports = {
   getOrder,
   getOrdersOfCustomer,
   getOrdersToManager,
+  getOrdersToDeliveryMan,
   getOrdersOfCustomerStatusWise,
   getOrdersToManagerStatusWise,
+  getOrdersToDeliveryManStatusWise,
   createItem,
   updateItem,
   deleteItem,

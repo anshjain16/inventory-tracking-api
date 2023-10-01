@@ -9,8 +9,10 @@ const {
   deleteOrder,
   getOrdersOfCustomer,
   getOrdersToManager,
+  getOrdersToDeliveryMan,
   getOrdersOfCustomerStatusWise,
   getOrdersToManagerStatusWise,
+  getOrdersToDeliveryManStatusWise,
   getOrder,
   createItem,
   updateItem,
@@ -36,6 +38,7 @@ router.delete("/order", deleteOrder);
 // get all orders to/of a user
 router.get("/order/customer", authMiddleware, getOrdersOfCustomer);
 router.get("/order/manager", authMiddleware, getOrdersToManager);
+router.get("/order/delivery", authMiddleware, getOrdersToDeliveryMan);
 
 // get orders to/of user status wise
 router.get(
@@ -47,6 +50,11 @@ router.get(
   "/order/manager/:status_id",
   authMiddleware,
   getOrdersToManagerStatusWise
+);
+router.get(
+  "/order/delivery/:status_id",
+  authMiddleware,
+  getOrdersToDeliveryManStatusWise
 );
 
 // get a order

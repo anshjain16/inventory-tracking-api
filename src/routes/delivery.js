@@ -4,6 +4,7 @@ const {
   createDeliveryMan,
   getDeliveryManToManager,
   getFreeDeliveryManToManager,
+  loginDeliveryMan,
   updateAvailability,
 } = require("../controllers/delivery");
 
@@ -11,6 +12,9 @@ const router = express.Router();
 
 // create delivery man
 router.post("/", authMiddleware, createDeliveryMan);
+
+// login delivery man
+router.post("/login", loginDeliveryMan);
 
 // get list of delivery mans for a specific manager
 router.get("/manager", authMiddleware, getDeliveryManToManager);

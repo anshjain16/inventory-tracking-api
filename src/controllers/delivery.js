@@ -1,4 +1,5 @@
 const dbclient = require("../dbconfig/database");
+const jwt = require("jsonwebtoken");
 
 const createDeliveryMan = async (req, res) => {
   try {
@@ -16,6 +17,37 @@ const createDeliveryMan = async (req, res) => {
     console.log(error);
     res.status(500).json("error");
   }
+};
+
+const loginDeliveryMan = async (req, res) => {
+  const { fullname, phone } = req.body;
+  console.log(req.body);
+  dbclient.query(
+    "SELECT * FROM delivery_man WHERE phone = $1 AND fullname = $2",
+    [phone, fullname],
+    (err, response) => {
+      if (response.rowCount === 0) {
+        res.status(500).json("Enter valid phone");
+      } else if (response.rows[0].fullname == fullname) {
+        const token = jwt.sign(
+          {
+            fullname: fullname,
+            phone: phone,
+            dm_id: response.rows[0].dm_id,
+          },
+          "thisismysecretkey"
+        );
+        res.status(200).json({
+          access_token: token,
+          role: response.rows[0].role,
+        });
+      } else if (err) {
+        res.status(505).json(err);
+      } else {
+        res.status(400).json("not authorized");
+      }
+    }
+  );
 };
 
 const getDeliveryManToManager = async (req, res) => {
@@ -48,18 +80,27 @@ const getFreeDeliveryManToManager = async (req, res) => {
 
 const updateAvailability = async (req, res) => {
   try {
-    const dm_id = req.params.dm_id;
+    let dm_id = req.params.dm_id;
+    if (dm_id == 0) {
+      dm_id = req.user.dm_id;
+    }
+    console.log(dm_id);
     const { availability } = req.body;
     const res1 = await dbclient.query(
-      "UPDATE delivery_man SET available = $1 WHERE dm_id = $2",
+      "UPDATE delivery_man SET available = $1 WHERE dm_id = $2 RETURNING available, dm_id",
       [availability, dm_id]
     );
+    // console.log(res1);
     res.status(200).json("updated");
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    res.status(500).json("err");
+  }
 };
 
 module.exports = {
   createDeliveryMan,
+  loginDeliveryMan,
   getDeliveryManToManager,
   getFreeDeliveryManToManager,
   updateAvailability,
