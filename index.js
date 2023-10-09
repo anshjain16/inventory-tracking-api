@@ -2,6 +2,7 @@ const { Client } = require("pg");
 const dbclient = require("./src/dbconfig/database");
 const cors = require("cors");
 const express = require("express");
+require("dotenv").config();
 
 const app = express();
 const http = require("http");
@@ -56,9 +57,13 @@ app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/notif", notifRouter);
 app.use("/api/v1/delivery", deliveryRouter);
 
-// const port = PROCESS.ENV.PORT || 8080;
+app.get("/", (req, res) => {
+  res.status(200).send("working");
+});
 
-server.listen(8080, async () => {
+const port = process.env.PORT || 8080;
+
+server.listen(port, async () => {
   await dbclient.connect();
-  console.log("The server is running on port: 8080");
+  console.log(`The server is running on port: ${port}`);
 });
