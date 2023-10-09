@@ -17,14 +17,23 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  // console.log("connected");
+  console.log("connected");
 
   socket.on("updateLocation", (data) => {
-    socket.broadcast.emit("locationUpdate", data);
+    io.to(data[2]).emit("locationUpdate", data);
   });
 
   socket.on("disconnect", () => {
     console.log("user disconnected");
+  });
+
+  socket.on("join room", (dm_id) => {
+    console.log(dm_id);
+    socket.join(dm_id[0]);
+  });
+
+  socket.on("leave room", (dm_id) => {
+    socket.leave(dm_id[0]);
   });
 });
 
@@ -49,7 +58,7 @@ app.use("/api/v1/delivery", deliveryRouter);
 
 // const port = PROCESS.ENV.PORT || 8080;
 
-server.listen(8080, () => {
-  dbclient.connect();
+server.listen(8080, async () => {
+  await dbclient.connect();
   console.log("The server is running on port: 8080");
 });
