@@ -1,6 +1,9 @@
 // --database client to identify the databse--
 const { Client } = require("pg");
 
+// const database_url =
+//   "postgresql://ansh:zNFgyzxsOkkcZkTte9ROyw@my-cluster-6144.8nk.cockroachlabs.cloud:26257/inventory tracking final?sslmode=verify-full";
+
 const client = new Client({
   host: "localhost",
   user: "postgres",
@@ -9,17 +12,6 @@ const client = new Client({
   database: "inventory tracking",
 });
 
-// --trial for connection--
-
-// client.connect();
-
-// client.query("SELECT * FROM courses", (err, res) => {
-//   if (!err) {
-//     console.log(res.rows);
-//   } else {
-//     console.log(err);
-//   }
-//   client.end;
-// });
+// const client = new Client(database_url);
 
 module.exports = client;

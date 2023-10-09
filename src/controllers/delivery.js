@@ -78,6 +78,19 @@ const getFreeDeliveryManToManager = async (req, res) => {
   }
 };
 
+const getDeliveryManInfo = async (req, res) => {
+  try {
+    const dm_id = req.user.dm_id;
+    const deliveryMan = await dbclient.query(
+      "SELECT * FROM delivery_man WHERE dm_id = $1",
+      [dm_id]
+    );
+    res.status(200).json(deliveryMan.rows[0]);
+  } catch (error) {
+    res.status(500).json("error");
+  }
+};
+
 const updateAvailability = async (req, res) => {
   try {
     let dm_id = req.params.dm_id;
@@ -103,5 +116,6 @@ module.exports = {
   loginDeliveryMan,
   getDeliveryManToManager,
   getFreeDeliveryManToManager,
+  getDeliveryManInfo,
   updateAvailability,
 };
