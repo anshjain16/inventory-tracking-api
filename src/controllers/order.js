@@ -368,6 +368,15 @@ const generateInvoice = async (req, res) => {
   }
 };
 
+const createStatus = async (req, res) => {
+  try {
+    const response = await dbclient.query("SELECT * FROM order_status");
+    res.status(200).json(response.rows);
+  } catch (error) {
+    res.status(500).json("error");
+  }
+};
+
 module.exports = {
   createOrder,
   updateAmmount,
@@ -387,4 +396,5 @@ module.exports = {
   getItem,
   getAllItems,
   generateInvoice,
+  createStatus,
 };

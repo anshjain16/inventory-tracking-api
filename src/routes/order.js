@@ -20,6 +20,7 @@ const {
   getAllItems,
   getItem,
   generateInvoice,
+  createStatus,
 } = require("../controllers/order");
 
 const router = express.Router();
@@ -77,5 +78,7 @@ router.get("/item/all/:order_id", getAllItems);
 
 // get order item
 router.get("/item/:item_id", getItem);
+
+router.post("/status", createStatus);
 
 module.exports = router;
