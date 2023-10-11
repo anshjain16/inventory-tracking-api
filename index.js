@@ -16,8 +16,9 @@ const io = new Server(
       origin: "*",
       methods: ["GET", "POST", "PUT", "DELETE"],
       credentials: true,
+      transports: ["websocket"],
     },
-    transports: ["websocket", "polling"],
+    allowEIO3: true,
   },
   (err) => {
     console.log(err);
@@ -25,6 +26,12 @@ const io = new Server(
 );
 
 io.on("connection", (socket) => {
+  const transport = socket.conn.transport.name; // in most cases, "polling"
+
+  socket.conn.on("upgrade", () => {
+    const upgradedTransport = socket.conn.transport.name; // in most cases, "websocket"
+  });
+
   console.log("connected");
 
   socket.on("updateLocation", (data) => {
