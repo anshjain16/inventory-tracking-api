@@ -2,7 +2,7 @@
 const { Client } = require("pg");
 
 const database_url =
-  "postgresql://ansh:zNFgyzxsOkkcZkTte9ROyw@my-cluster-6144.8nk.cockroachlabs.cloud:26257/inventory tracking final?sslmode=verify-full";
+  "postgresql://ansh:IthevN_UK7J_ABpt79-7oQ@my-cluster-6144.8nk.cockroachlabs.cloud:26257/inventory tracking final?sslmode=verify-full";
 
 // const client = new Client({
 //   host: "localhost",
